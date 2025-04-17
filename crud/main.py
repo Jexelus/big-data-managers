@@ -5,7 +5,8 @@ from sqlmodel import Session
 from models import Manager
 from database import get_session, init_db
 from uuid import UUID
-
+import requests
+import boto3
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -17,6 +18,25 @@ async def lifespan(app: FastAPI):
     # Clean up resources on shutdown (if needed)
     print("Shutting down...")
 
+REPOERT_SERVICE_URL = "http://reportservice:8000"
+
+access_key = "minioadmin"
+secret_key = "minioadmin"
+endpoint_url = "http://minio:9000"
+
+s3_client = boto3.client(
+    "s3",
+    endpoint_url=endpoint_url,
+    aws_access_key_id=access_key,
+    aws_secret_access_key=secret_key
+)
+
+bucket_name = "main"
+try:
+    s3_client.create_bucket(Bucket=bucket_name)
+    print(f"Bucket '{bucket_name}' created successfully.")
+except Exception:
+    print("cant create bucket, already exists")
 
 app = FastAPI(lifespan=lifespan)
 
@@ -60,10 +80,20 @@ def delete_manager(manager_id: UUID, session: Session = Depends(get_session)):
 
 @app.get("/reports/report")
 def generate_report(session: Session = Depends(get_session)):
-    managers = session.query(Manager).all()
-    report = {str(manager.name): manager.contracts_count for manager in managers}
+    report = requests.get(REPOERT_SERVICE_URL + "/report/file").json()
+    print(report)
     return report
 
+@app.get("/reports/file")
+def generate_report(session: Session = Depends(get_session)):
+    report = requests.get(REPOERT_SERVICE_URL + "/report/file").json()
+    print(report)
+    return report
+
+@app.get("/reports/report_file/{report_id}")
+def get_report(report_id: str, session: Session = Depends(get_session)):
+    s3_client.download_file(bucket_name, f"{report_id}", f"{report_id}")
+    return FileResponse(f"{report_id}")
 
 if __name__ == "__main__":
     import uvicorn

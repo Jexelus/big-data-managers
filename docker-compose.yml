@@ -23,4 +23,29 @@ services:
       - "3000:8000" #op
     depends_on:
       - db
-  
+      
+  reportservice:
+    image: reportservice:latest
+    build: 
+      context: ./reportservice
+      dockerfile: Dockerfile
+    restart: always
+    container_name: reportservice
+    ports:
+      - "3001:8000" #op
+    depends_on:
+      - crudservice
+
+  minio:
+    image: quay.io/minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000"  # Порт для S3 API
+      - "9001:9001"  # Порт для MinIO Console (веб-интерфейс)
+    environment:
+      MINIO_ROOT_USER: minioadmin       # Логин для доступа к MinIO
+      MINIO_ROOT_PASSWORD: minioadmin  # Пароль для доступа к MinIO
+    volumes:
+      - ./minio:/data                    # Монтирование локальной директории для хранения данных
+    command: server /data --console-address ":9001"
+    restart: always
