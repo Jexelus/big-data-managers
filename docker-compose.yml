@@ -49,3 +49,16 @@ services:
       - ./minio:/data                    # Монтирование локальной директории для хранения данных
     command: server /data --console-address ":9001"
     restart: always
+
+  locust:
+    image: locustmy:latest
+    build:
+      context: ./locust
+      dockerfile: Dockerfile
+    container_name: locust
+    ports:
+      - "8089:8089"  # Веб-интерфейс Locust
+    environment:
+      LOCUST_HOST: http://crudservice:8000  # URL вашего API внутри Docker сети
+    depends_on:
+      - crudservice

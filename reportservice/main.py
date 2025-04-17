@@ -24,7 +24,7 @@ except Exception:
     print("cant create bucket, already exists")
 
 @app.get("/report")
-def generate_report():
+async def generate_report():
     try:
         return get_report_data()
     except Exception as e:
@@ -32,7 +32,7 @@ def generate_report():
 
 import json
 @app.get("/report/file")
-def get_report_file():
+async def get_report_file():
     try:
         report_data = get_report_data()
         file_name = f"report_{uuid.uuid4()}.json"

@@ -4,3 +4,4 @@
 /minio/main
 /minio/.minio.sys
 /reportservice/env
+/locust/env
