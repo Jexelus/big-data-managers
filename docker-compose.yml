@@ -19,8 +19,8 @@ services:
       dockerfile: Dockerfile
     restart: always
     container_name: crudservice
-    ports:
-      - "3000:8000" #op
+    #ports:
+    #  - "3000:8000" #op
     depends_on:
       - db
       
