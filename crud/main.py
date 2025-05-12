@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Response, Request
 from fastapi.responses import FileResponse
 from sqlmodel import Session
 from models import Manager
@@ -94,6 +94,17 @@ def generate_report(session: Session = Depends(get_session)):
 def get_report(report_id: str, session: Session = Depends(get_session)):
     s3_client.download_file(bucket_name, f"{report_id}", f"{report_id}")
     return FileResponse(f"{report_id}")
+
+import pydantic
+
+class PathData(pydantic.BaseModel):
+    path: str
+
+@app.post("/reports_by_path/")
+async def proxy_reports(request: Request, pathData: PathData):
+    report_service_endpoint = REPOERT_SERVICE_URL + f"/{pathData.path}"
+    response = requests.get(report_service_endpoint)
+    return response.json()
 
 if __name__ == "__main__":
     import uvicorn
